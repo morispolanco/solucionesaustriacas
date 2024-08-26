@@ -124,7 +124,7 @@ with col2:
         url = "https://api.together.xyz/inference"
         payload = json.dumps({
             "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
-            "prompt": f"Contexto: {contexto}\n\nProblema: {problema}\n\nCondiciones Iniciales:\n{condicion_str}\n\nProporciona una solución basada en las propuestas de la Escuela Austríaca de Economía al problema '{problema}' dadas las condiciones iniciales mencionadas. La solución debe ser breve y presentar principios y teorías de la economía austriaca relevantes para el problema específico.\n\nSolución:",
+            "prompt": f"Contexto: {contexto}\n\nProblema: {problema}\n\nCondiciones Iniciales:\n{condicion_str}\n\nProporciona una solución basada en las propuestas de la Escuela Austríaca de Economía al problema '{problema}' dadas las condiciones iniciales mencionadas. Discute cómo estas condiciones iniciales afectan el problema y justifica la solución propuesta. Fundamenta la respuesta en los principios y teorías de la economía austriaca.\n\nSolución:",
             "max_tokens": 2048,
             "temperature": 0.7,
             "top_p": 0.7,
