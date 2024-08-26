@@ -248,6 +248,3 @@ with col2:
                 )
         else:
             st.warning("Por favor, selecciona un problema y llena las condiciones iniciales.")
-3. **Formato de Salida Adaptado**: Las soluciones y evaluaciones se presentan en la pantalla y se pueden descargar en un archivo DOCX.
-
-Con estos cambios, los usuarios pueden especificar las condiciones iniciales de su país, lo que brinda una experiencia más personalizada y detallada en cuestión de generación de soluciones y evaluación de los impactos.
