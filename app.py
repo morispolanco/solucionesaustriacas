@@ -25,12 +25,12 @@ def crear_columna_info():
     st.markdown("""
     ### Sobre esta aplicación
 
-    Esta aplicación proporciona soluciones basadas en la Escuela Austríaca de Economía a diversos problemas económicos y sociales. Permite a los usuarios obtener soluciones creativas y propuestas de la economía austriaca para diferentes problemas.
+    Esta aplicación proporciona soluciones basadas en la Escuela Austríaca de Economía a diversos problemas económicos y sociales, adaptadas a países de América Latina. Permite a los usuarios obtener soluciones creativas y propuestas de la economía austriaca para diferentes problemas.
 
     ### Cómo usar la aplicación:
 
     1. Elija un problema económico/social de la lista predefinida o proponga su propio problema.
-    2. Seleccione una categoría relevante.
+    2. Seleccione un país de América Latina.
     3. Haga clic en "Obtener solución" para generar las respuestas.
     4. Lea las soluciones y fuentes proporcionadas.
     5. Si lo desea, descargue un documento DOCX con toda la información.
@@ -40,7 +40,6 @@ def crear_columna_info():
 
     ### Cómo citar esta aplicación (formato APA):
     Polanco, M. (2024). *Problemas y soluciones de la Escuela Austríaca de Economía* [Aplicación web]. https://solucionesau.econom.streamlit.app
-
     """)
 
 # Titles and Main Column
@@ -107,16 +106,18 @@ with col2:
         "¿Cómo asegurar una transición energética justa?", "¿Cómo promover la participación de mujeres en la economía?"
     ])
 
-    # List of categories or fields 
-    categorias = [
-        "Educación", "Salud", "Economía", "Ecología", "Tecnología", 
-        "Política", "Social", "Jurídico", "Infraestructura", "Transporte"
+    # List of Latin American countries
+    paises_latinoamerica = [
+        "Argentina", "Bolivia", "Brasil", "Chile", "Colombia", 
+        "Costa Rica", "Cuba", "Ecuador", "El Salvador", "Guatemala", 
+        "Honduras", "México", "Nicaragua", "Panamá", "Paraguay", 
+        "Perú", "República Dominicana", "Uruguay", "Venezuela"
     ]
 
-    def buscar_informacion(query, categoria):
+    def buscar_informacion(query, pais):
         url = "https://google.serper.dev/search"
         payload = json.dumps({
-            "q": f"{query} {categoria} Escuela Austríaca"
+            "q": f"{query} {pais} Escuela Austríaca"
         })
         headers = {
             'X-API-KEY': SERPER_API_KEY,
@@ -125,30 +126,11 @@ with col2:
         response = requests.post(url, headers=headers, data=payload)
         return response.json()
 
-    def generar_respuesta(problema, categoria, contexto):
+    def generar_respuesta(problema, pais, contexto):
         url = "https://api.together.xyz/inference"
         payload = json.dumps({
             "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
-            "prompt": f"Contexto: {contexto}\n\nProblema: {problema}\nCategoría: {categoria}\n\nProporciona una solución basada en las propuestas de la Escuela Austríaca de Economía al problema '{problema}' en el ámbito de {categoria}. La solución debe incluir principios y teorías de la economía austriaca, y si es posible, ejemplos de estudios de caso o estrategias relacionadas.\n\nSolución:",
-            "max_tokens": 2048,
-            "temperature": 0.7,
-            "top_p": 0.7,
-            "top_k": 50,
-            "repetition_penalty": 1,
-            "stop": ["Problema:"]
-        })
-        headers = {
-            'Authorization': f'Bearer {TOGETHER_API_KEY}',
-            'Content-Type': 'application/json'
-        }
-        response = requests.post(url, headers=headers, data=payload)
-        return response.json()['output']['choices'][0]['text'].strip()
-
-    def generar_respuesta_especifico(problema, categoria, contexto, pais):
-        url = "https://api.together.xyz/inference"
-        payload = json.dumps({
-            "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
-            "prompt": f"Contexto: {contexto}\n\nProblema: {problema}\nCategoría: {categoria}\nPaís: {pais}\n\nProporciona una solución específica basada en las propuestas de la Escuela Austríaca de Economía al problema '{problema}' en el ámbito de {categoria} para el país '{pais}'. La solución debe incluir principios y teorías de la economía austriaca adaptadas a las condiciones del país, y si es posible, ejemplos de estudios de caso o estrategias relacionadas.\n\nSolución:",
+            "prompt": f"Contexto: {contexto}\n\nProblema: {problema}\nPaís: {pais}\n\nProporciona una solución basada en las propuestas de la Escuela Austríaca de Economía al problema '{problema}' para el país {pais}. La solución debe incluir principios y teorías de la economía austriaca, y si es posible, ejemplos de estudios de caso o estrategias relacionadas.\n\nSolución:",
             "max_tokens": 2048,
             "temperature": 0.7,
             "top_p": 0.7,
@@ -170,8 +152,8 @@ with col2:
         doc.add_heading('Problema', level=1)
         doc.add_paragraph(problema)
 
-        for categoria, respuesta in respuestas.items():
-            doc.add_heading(f'Solución en la categoría {categoria}', level=2)
+        for pais, respuesta in respuestas.items():
+            doc.add_heading(f'Solución para el país {pais}', level=2)
             doc.add_paragraph(respuesta)
 
         doc.add_heading('Fuentes', level=1)
@@ -193,33 +175,28 @@ with col2:
     else:
         problema = st.text_input("Ingresa tu propio problema económico o social:")
 
-    st.write("Selecciona una categoría relevante:")
-    categoria_seleccionada = st.selectbox("Categoría", categorias)
+    st.write("Selecciona un país de América Latina:")
+    pais_seleccionado = st.selectbox("País", paises_latinoamerica)
 
     if st.button("Obtener solución"):
-        if problema and categoria_seleccionada:
+        if problema and pais_seleccionado:
             with st.spinner("Buscando información y generando soluciones..."):
                 respuestas, todas_fuentes = {}, []
 
                 # Buscar información relevante
-                resultados_busqueda = buscar_informacion(problema, categoria_seleccionada)
+                resultados_busqueda = buscar_informacion(problema, pais_seleccionado)
                 contexto = "\n".join([item["snippet"] for item in resultados_busqueda.get("organic", [])])
                 fuentes = [item["link"] for item in resultados_busqueda.get("organic", [])]
 
-                # Generar respuesta general basada en la Escuela Austríaca
-                respuesta_general = generar_respuesta(problema, categoria_seleccionada, contexto)
-                respuestas[categoria_seleccionada] = respuesta_general
-
-                # Generar respuesta específica para Guatemala
-                respuesta_guatemala = generar_respuesta_especifico(problema, categoria_seleccionada, contexto, "Guatemala")
-                respuestas[f"{categoria_seleccionada} (Guatemala)"] = respuesta_guatemala
-
+                # Generar respuesta basada en la Escuela Austríaca de Economía
+                respuesta = generar_respuesta(problema, pais_seleccionado, contexto)
+                respuestas[pais_seleccionado] = respuesta
                 todas_fuentes.extend(fuentes)
 
                 # Mostrar las respuestas
                 st.subheader(f"Soluciones para el problema: {problema}")
-                for categoria, respuesta in respuestas.items():
-                    st.markdown(f"**{categoria}:** {respuesta}")
+                for pais, respuesta in respuestas.items():
+                    st.markdown(f"**{pais}:** {respuesta}")
 
                 # Botón para descargar el documento
                 doc = create_docx(problema, respuestas, todas_fuentes)
@@ -233,4 +210,4 @@ with col2:
                     mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 )
         else:
-            st.warning("Por favor, selecciona un problema y una categoría.")
+            st.warning("Por favor, selecciona un problema y un país.")
