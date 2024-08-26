@@ -5,7 +5,7 @@ from docx import Document
 from io import BytesIO
 
 # Set page configuration
-st.set_page_config(page_title="Problemas y soluciones de la Escuela Austríaca de Economía", page_icon="📚", layout="wide")
+st.set_page_config(page_title="Mejores Políticas Públicas", page_icon="📚", layout="wide")
 
 # Function to set the background color
 def set_background_color(color):
@@ -25,26 +25,26 @@ def crear_columna_info():
     st.markdown("""
     ### Sobre esta aplicación
 
-    Esta aplicación proporciona soluciones basadas en la Escuela Austríaca de Economía a diversos problemas económicos y sociales, adaptadas a diferentes condiciones iniciales. Permite a los usuarios obtener soluciones creativas y propuestas de la economía austriaca para diferentes problemas.
+    Esta aplicación proporciona las mejores políticas públicas para diversos problemas económicos y sociales, adaptadas a diferentes condiciones iniciales. Permite a los usuarios obtener soluciones creativas y basadas en evidencia para diferentes problemas.
 
     ### Cómo usar la aplicación:
 
     1. Elija un problema económico/social de la lista predefinida o proponga su propio problema.
-    2. Rellene el formulario con las condiciones iniciales de tu país.
-    3. Haga clic en "Obtener solución" para generar las respuestas.
-    4. Lea las soluciones proporcionadas.
+    2. Rellene el formulario con las condiciones iniciales de su país.
+    3. Haga clic en "Obtener solución" para generar la propuesta.
+    4. Lea las políticas públicas sugeridas.
     5. Si lo desea, descargue un documento DOCX con toda la información.
 
     ### Autor y actualización:
     **Moris Polanco**, 26 ag 2024
 
     ### Cómo citar esta aplicación (formato APA):
-    Polanco, M. (2024). *Problemas y soluciones de la Escuela Austríaca de Economía* [Aplicación web]. https://appsimulacro.streamlit.app
+    Polanco, M. (2024). *Mejores Políticas Públicas* [Aplicación web]. https://mejorespoliticas.streamlit.app
 
     """)
 
 # Titles and Main Column
-st.title("Problemas y soluciones de la Escuela Austríaca de Economía")
+st.title("Mejores Políticas Públicas")
 
 # Set background color to light yellow
 set_background_color("#FFF9C4")  # Light yellow color code
@@ -107,10 +107,10 @@ with col2:
         "¿Cómo asegurar una transición energética justa?", "¿Cómo promover la participación de mujeres en la economía?"
     ])
 
-    def buscar_informacion(query):
+    def buscar_informacion(query, country):
         url = "https://google.serper.dev/search"
         payload = json.dumps({
-            "q": f"{query} Escuela Austríaca"
+            "q": f"{query} {country} site: wikipedia.org"
         })
         headers = {
             'X-API-KEY': SERPER_API_KEY,
@@ -124,7 +124,7 @@ with col2:
         url = "https://api.together.xyz/inference"
         payload = json.dumps({
             "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
-            "prompt": f"Contexto: {contexto}\n\nProblema: {problema}\n\nCondiciones Iniciales:\n{condicion_str}\n\nProporciona una solución basada en las propuestas de la Escuela Austríaca de Economía al problema '{problema}' dadas las condiciones iniciales mencionadas. Discute cómo estas condiciones iniciales afectan el problema y justifica la solución propuesta. Fundamenta la respuesta en los principios y teorías de la economía austriaca.\n\nSolución:",
+            "prompt": f"Contexto: {contexto}\n\nProblema: {problema}\n\nCondiciones Iniciales:\n{condicion_str}\n\nProporciona una solución de política pública al problema '{problema}' dadas las condiciones iniciales mencionadas. Discute cómo estas condiciones iniciales afectan el problema y justifica la solución propuesta. Fundamenta la respuesta en principios de políticas públicas basadas en evidencia.\n\nSolución:",
             "max_tokens": 2048,
             "temperature": 0.7,
             "top_p": 0.7,
@@ -141,12 +141,12 @@ with col2:
 
     def create_docx(problema, solucion):
         doc = Document()
-        doc.add_heading('Diccionario de Problemas Económicos y Soluciones Austríacas', 0)
+        doc.add_heading('Diccionario de Problemas Económicos y Soluciones de Políticas Públicas', 0)
 
         doc.add_heading('Problema', level=1)
         doc.add_paragraph(problema)
 
-        doc.add_heading('Solución Austríaca', level=1)
+        doc.add_heading('Solución de Política Pública', level=1)
         doc.add_paragraph(solucion)
 
         doc.add_paragraph('\nNota: Este documento fue generado por un asistente de IA. Verifica la información con fuentes académicas y especialistas en la materia para un análisis más profundo.')
@@ -164,6 +164,7 @@ with col2:
 
     st.write("Rellene el siguiente formulario con las condiciones iniciales de tu país:")
 
+    pais = st.text_input("País", "Guatemala")
     tasa_desempleo = st.text_input("Tasa de desempleo (%)", "2.5")
     inflacion = st.text_input("Inflación (%)", "4.2")
     deuda_publica = st.text_input("Deuda pública como % del PIB", "35.1")
@@ -172,6 +173,7 @@ with col2:
     indice_gini = st.text_input("Índice de Gini", "0.55")
 
     condiciones_iniciales = {
+        "País": pais,
         "Tasa de desempleo": f"{tasa_desempleo}%",
         "Inflación": f"{inflacion}%",
         "Deuda pública como % del PIB": f"{deuda_publica}%",
@@ -185,16 +187,16 @@ with col2:
             with st.spinner("Buscando información y generando soluciones..."):
                 # Buscar información relevante
                 contexto = ""
-                resultados_busqueda = buscar_informacion(problema)
+                resultados_busqueda = buscar_informacion(problema, pais)
                 contexto = "\n".join([item["snippet"] for item in resultados_busqueda.get("organic", [])])
                 fuentes = [item["link"] for item in resultados_busqueda.get("organic", [])]
 
-                # Generar solución basada en la Escuela Austríaca de Economía
+                # Generar solución de política pública
                 solucion = generar_respuesta(problema, contexto, condiciones_iniciales)
 
                 # Mostrar la solución
                 st.subheader(f"Solución para el problema: {problema}")
-                st.markdown(f"**Solución Austríaca:** {solucion}")
+                st.markdown(f"**Solución de Política Pública:** {solucion}")
 
                 # Botón para descargar el documento
                 doc = create_docx(problema, solucion)
