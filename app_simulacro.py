@@ -39,7 +39,7 @@ def crear_columna_info():
     **Moris Polanco**, 26 ag 2024
 
     ### Cómo citar esta aplicación (formato APA):
-    Polanco, M. (2024). *Mejores Políticas Públicas* [Aplicación web]. https://mejorespoliticas.streamlit.app
+    Polanco, M. (2024). *Mejores Políticas Públicas* [Aplicación web]. https://appsimulacro.streamlit.app
 
     """)
 
