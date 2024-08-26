@@ -32,7 +32,7 @@ def crear_columna_info():
     1. Elija un problema económico/social de la lista predefinida o proponga su propio problema.
     2. Rellene el formulario con las condiciones iniciales de tu país.
     3. Haga clic en "Obtener solución" para generar las respuestas.
-    4. Lea las soluciones y fuentes proporcionadas.
+    4. Lea las soluciones proporcionadas.
     5. Si lo desea, descargue un documento DOCX con toda la información.
 
     ### Autor y actualización:
@@ -107,10 +107,10 @@ with col2:
         "¿Cómo asegurar una transición energética justa?", "¿Cómo promover la participación de mujeres en la economía?"
     ])
 
-    def buscar_informacion(query, pais):
+    def buscar_informacion(query):
         url = "https://google.serper.dev/search"
         payload = json.dumps({
-            "q": f"{query} {pais} Escuela Austríaca"
+            "q": f"{query} Escuela Austríaca"
         })
         headers = {
             'X-API-KEY': SERPER_API_KEY,
@@ -124,7 +124,7 @@ with col2:
         url = "https://api.together.xyz/inference"
         payload = json.dumps({
             "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
-            "prompt": f"Contexto: {contexto}\n\nProblema: {problema}\n\nCondiciones Iniciales:\n{condicion_str}\n\nProporciona una solución basada en las propuestas de la Escuela Austríaca de Economía al problema '{problema}' dada las condiciones iniciales mencionadas. La solución debe ser breve y presentar principios y teorías de la economía austriaca relevantes para el problema específico.\n\nSolución:",
+            "prompt": f"Contexto: {contexto}\n\nProblema: {problema}\n\nCondiciones Iniciales:\n{condicion_str}\n\nProporciona una solución basada en las propuestas de la Escuela Austríaca de Economía al problema '{problema}' dadas las condiciones iniciales mencionadas. La solución debe ser breve y presentar principios y teorías de la economía austriaca relevantes para el problema específico.\n\nSolución:",
             "max_tokens": 2048,
             "temperature": 0.7,
             "top_p": 0.7,
@@ -139,29 +139,7 @@ with col2:
         response = requests.post(url, headers=headers, data=payload)
         return response.json()['output']['choices'][0]['text'].strip()
 
-    def evaluar_impacto(problema, contexto, condiciones_iniciales):
-        condicion_str = "\n".join([f"{key}: {value}" for key, value in condiciones_iniciales.items()])
-        url = "https://api.together.xyz/inference"
-        payload = json.dumps({
-            "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
-            "prompt": f"Contexto: {contexto}\n\nProblema: {problema}\n\nCondiciones Iniciales:\n{condicion_str}\n\nSimula la implementación de la solución basada en la Escuela Austríaca de Economía por un período de cinco años. Describe los resultados anuales desde el primer año hasta el quinto año.\n\nAño 1:",
-            "max_tokens": 2048,
-            "temperature": 0.7,
-            "top_p": 0.7,
-            "top_k": 50,
-            "repetition_penalty": 1,
-            "stop": ["Año 2:", "Año 3:", "Año 4:", "Año 5:"]
-        })
-        headers = {
-            'Authorization': f'Bearer {TOGETHER_API_KEY}',
-            'Content-Type': 'application/json'
-        }
-        response = requests.post(url, headers=headers, data=payload)
-        años = response.json()['output']['choices'][0]['text'].strip().split("Año ")
-        evaluacion = {f"Año {i + 1}": f"Año {i + 1}:\n{años[i + 1]}" for i in range(5)}
-        return evaluacion
-
-    def create_docx(problema, solucion, evaluacion):
+    def create_docx(problema, solucion):
         doc = Document()
         doc.add_heading('Diccionario de Problemas Económicos y Soluciones Austríacas', 0)
 
@@ -170,11 +148,6 @@ with col2:
 
         doc.add_heading('Solución Austríaca', level=1)
         doc.add_paragraph(solucion)
-
-        doc.add_heading('Evaluación de Impactos a 5 Años', level=1)
-        for año, impacto in evaluacion.items():
-            doc.add_heading(año, level=2)
-            doc.add_paragraph(impacto)
 
         doc.add_paragraph('\nNota: Este documento fue generado por un asistente de IA. Verifica la información con fuentes académicas y especialistas en la materia para un análisis más profundo.')
 
@@ -210,33 +183,21 @@ with col2:
     if st.button("Obtener solución"):
         if problema and condiciones_iniciales:
             with st.spinner("Buscando información y generando soluciones..."):
-                respuestas, todas_fuentes = {}, []
-
-                # Buscar información relevante (opcional)
+                # Buscar información relevante
                 contexto = ""
-                resultados_busqueda = buscar_informacion(problema, "latinoamerica")
+                resultados_busqueda = buscar_informacion(problema)
                 contexto = "\n".join([item["snippet"] for item in resultados_busqueda.get("organic", [])])
                 fuentes = [item["link"] for item in resultados_busqueda.get("organic", [])]
 
                 # Generar solución basada en la Escuela Austríaca de Economía
                 solucion = generar_respuesta(problema, contexto, condiciones_iniciales)
 
-                # Evaluar impacto por etapas anuales
-                evaluacion = evaluar_impacto(problema, contexto, condiciones_iniciales)
-
-                respuestas["solucion"] = solucion
-                respuestas["evaluacion"] = evaluacion
-
-                todas_fuentes.extend(fuentes)
-
-                # Mostrar las respuestas
-                st.subheader(f"Soluciones para el problema: {problema}")
+                # Mostrar la solución
+                st.subheader(f"Solución para el problema: {problema}")
                 st.markdown(f"**Solución Austríaca:** {solucion}")
-                for año, impacto in evaluacion.items():
-                    st.markdown(f"**{año}:** {impacto}")
 
                 # Botón para descargar el documento
-                doc = create_docx(problema, solucion, evaluacion)
+                doc = create_docx(problema, solucion)
                 buffer = BytesIO()
                 doc.save(buffer)
                 buffer.seek(0)
