@@ -39,7 +39,7 @@ def crear_columna_info():
     **Moris Polanco**, 26 ag 2024
 
     ### Cómo citar esta aplicación (formato APA):
-    Polanco, M. (2024). *Problemas y soluciones de la Escuela Austríaca de Economía* [Aplicación web]. https://solucionesaustriacas.streamlit.app
+    Polanco, M. (2024). *Problemas y soluciones de la Escuela Austríaca de Economía* [Aplicación web]. https://solucionesau.econom.streamlit.app
 
     """)
 
@@ -144,6 +144,25 @@ with col2:
         response = requests.post(url, headers=headers, data=payload)
         return response.json()['output']['choices'][0]['text'].strip()
 
+    def generar_respuesta_especifico(problema, categoria, contexto, pais):
+        url = "https://api.together.xyz/inference"
+        payload = json.dumps({
+            "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+            "prompt": f"Contexto: {contexto}\n\nProblema: {problema}\nCategoría: {categoria}\nPaís: {pais}\n\nProporciona una solución específica basada en las propuestas de la Escuela Austríaca de Economía al problema '{problema}' en el ámbito de {categoria} para el país '{pais}'. La solución debe incluir principios y teorías de la economía austriaca adaptadas a las condiciones del país, y si es posible, ejemplos de estudios de caso o estrategias relacionadas.\n\nSolución:",
+            "max_tokens": 2048,
+            "temperature": 0.7,
+            "top_p": 0.7,
+            "top_k": 50,
+            "repetition_penalty": 1,
+            "stop": ["Problema:"]
+        })
+        headers = {
+            'Authorization': f'Bearer {TOGETHER_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        response = requests.post(url, headers=headers, data=payload)
+        return response.json()['output']['choices'][0]['text'].strip()
+
     def create_docx(problema, respuestas, fuentes):
         doc = Document()
         doc.add_heading('Diccionario de Problemas y Soluciones Económicas', 0)
@@ -187,10 +206,14 @@ with col2:
                 contexto = "\n".join([item["snippet"] for item in resultados_busqueda.get("organic", [])])
                 fuentes = [item["link"] for item in resultados_busqueda.get("organic", [])]
 
-                # Generar respuesta
-                respuesta = generar_respuesta(problema, categoria_seleccionada, contexto)
+                # Generar respuesta general basada en la Escuela Austríaca
+                respuesta_general = generar_respuesta(problema, categoria_seleccionada, contexto)
+                respuestas[categoria_seleccionada] = respuesta_general
 
-                respuestas[categoria_seleccionada] = respuesta
+                # Generar respuesta específica para Guatemala
+                respuesta_guatemala = generar_respuesta_especifico(problema, categoria_seleccionada, contexto, "Guatemala")
+                respuestas[f"{categoria_seleccionada} (Guatemala)"] = respuesta_guatemala
+
                 todas_fuentes.extend(fuentes)
 
                 # Mostrar las respuestas
