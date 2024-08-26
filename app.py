@@ -132,10 +132,10 @@ with col2:
             "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
             "prompt": f"Contexto: {contexto}\n\nProblema: {problema}\nPaís: {pais}\n\nProporciona una solución basada en las propuestas de la Escuela Austríaca de Economía al problema '{problema}' para el país {pais}. La solución debe incluir principios y teorías de la economía austriaca, y si es posible, ejemplos de estudios de caso o estrategias relacionadas.\n\nSolución:",
             "max_tokens": 2048,
-            "temperature": 0,
+            "temperature": 0.7,
             "top_p": 0.7,
             "top_k": 50,
-            "repetition_penalty": 0.3,
+            "repetition_penalty": 1,
             "stop": ["Problema:"]
         })
         headers = {
