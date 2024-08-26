@@ -39,7 +39,7 @@ def crear_columna_info():
     **Moris Polanco**, 26 ag 2024
 
     ### Cómo citar esta aplicación (formato APA):
-    Polanco, M. (2024). *Problemas y soluciones de la Escuela Austríaca de Economía* [Aplicación web]. https://solucionesau.econom.streamlit.app
+    Polanco, M. (2024). *Problemas y soluciones de la Escuela Austríaca de Economía* [Aplicación web]. https://appsimulacro.streamlit.app
 
     """)
 
